@@ -1,0 +1,7 @@
+#id, desc, xid, tlogkey, plogkey, pchmin, pchmax
+1,Tweetawatt Power Sensor,1,HP6r8st,9666,0,200
+2,Temperature Sensor,2,iaZPQRKw,9709,0,120
+3,Tweetawatt Power Sensor,3,vugrnERq,9668,0,200
+4,Tweetawatt Power Sensor,4,qPCCSIra,9669,0,200
+5,Gas Sensor,5,hRpehiQ3,10267,0,1023
+6,FSR Bed Presence,6,odXi4cL7,10258,0,1023
