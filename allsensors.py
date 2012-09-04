@@ -53,18 +53,16 @@ vrefcalibration = [0,
                    486]
 CURRENTNORM = 15.5  # conversion to amperes from ADC
 
-PACHUBE_KEY = "e7d7befa77e795a688c5d0b6c7a3ddef95012e2e2e57062be4c7d175d2901651"
+PACHUBE_KEY = ""
 
 # CJ, 03.12.2011, added these to send feeds to Sen.se
 SENSEURL = "http://api.sen.se/events/?sense_key="
-# SENSE_KEY = "3aDtyWpZYcgXCYpDM5az_A"
-SENSE_KEY = "pdd-cRQmZiaJxFz-KmbApQ"
+SENSE_KEY = ""
 
 
 # CJ, 05.04.2011, added these for ThingSpeak.com
 THINGSPEAKURL = "api.thingspeak.com"
-# THINGSPEAKURL = "http://184.106.153.149"
-THINGSPEAK_KEY = "U493V3CHYJS9N9FP"
+THINGSPEAK_KEY = ""
 
 # data logger settings (uses suds libs)
 TINAJALOGURL = "http://jumano.com/tinajadl/datalogger.asmx"
@@ -75,8 +73,8 @@ client = Client(logwsdl)
 LOCALLOGPATH = "/var/www/tinajalog"
 
 # Twitter credentials
-twitterusername = "christweetawatt"
-twitterpassword = "hello1"
+twitterusername = ""
+twitterpassword = ""
 
 # open up the serial port to get data transmitted to xbee
 try:
@@ -174,7 +172,7 @@ def mainloop(idleevent):
     elif xb.address_16 == 2: # temp sensor
         tLogApiKey = "iaZPQRKw"
         PachubeLogKey = "9709"
-        SenseFeedKey = "2271" 
+        SenseFeedKey = "0" 
         ThingSpeakKey = ""
         thisTemp = calctemp(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
