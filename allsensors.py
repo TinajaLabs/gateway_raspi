@@ -5,7 +5,8 @@
 print "Sensor Manager..."
 # print "Tinaja Labs, Winter 2011 - spike fix"
 # print "Tinaja Labs, May 4th, 2011 - Multi-sensor, ThingSpeak"
-print "Tinaja Labs, June 6th, 2011 - Multi-sensor, ThingSpeak setup"
+# print "Tinaja Labs, June 6th, 2011 - Multi-sensor, ThingSpeak setup"
+print "Tinaja Labs, Sept 4, 2012 - Config file setup"
 print "--------------------------------------------"
 
 import serial, time, datetime, sys, random, math
@@ -13,8 +14,9 @@ import syslog
 from xbee import xbee
 import twitter
 import sensorhistory
+import ConfigParser, os
 
-# CJ, 03.12.2011, added these to send feeds to Sen.se
+# to send feeds to Sen.se
 import urllib, urllib2, httplib
 import simplejson
 print "imported simplejson lib..."
@@ -22,7 +24,7 @@ print "imported simplejson lib..."
 from suds.client import Client
 print "imported suds client lib..."
 
-# For Pachube
+# For cosm
 import eeml
 print "imported eeml lib..."
 
@@ -53,28 +55,9 @@ vrefcalibration = [0,
                    486]
 CURRENTNORM = 15.5  # conversion to amperes from ADC
 
-PACHUBE_KEY = ""
-
-# CJ, 03.12.2011, added these to send feeds to Sen.se
-SENSEURL = "http://api.sen.se/events/?sense_key="
-SENSE_KEY = ""
-
-
-# CJ, 05.04.2011, added these for ThingSpeak.com
-THINGSPEAKURL = "api.thingspeak.com"
-THINGSPEAK_KEY = ""
-
-# data logger settings (uses suds libs)
-TINAJALOGURL = "http://jumano.com/tinajadl/datalogger.asmx"
-logwsdl = TINAJALOGURL + "?wsdl"
-client = Client(logwsdl)
-
-# LOCALLOGPATH = "/opt/www/tinajalog"
-LOCALLOGPATH = "/var/www/tinajalog"
-
-# Twitter credentials
-twitterusername = ""
-twitterpassword = ""
+# set up the config file parser
+config = ConfigParser.ConfigParser()
+config.read("default.cfg")
 
 # open up the serial port to get data transmitted to xbee
 try:
@@ -102,7 +85,7 @@ twittertimer = 0
 ##############################################################
 # the main function
 def mainloop(idleevent):
-    global sensorhistories, twittertimer, DEBUG, PACHUBE_KEY
+    global sensorhistories, twittertimer, DEBUG, COSM_KEY
     # grab one packet from the xbee, or timeout
 
 
@@ -150,84 +133,84 @@ def mainloop(idleevent):
 
     if xb.address_16 == 12: # tweetawatt sensor 
         tLogApiKey = "" # Ctr5g3lD
-        PachubeLogKey = "25293" 
+        cosmLogKey = "25293" 
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgwatt = calcwatts(xb) 
         sensorhistory = sensorhistories.find(xb.address_16) 
         addwhistory(sensorhistory, avgwatt) 
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 100, xb.rssi, 0) 
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 100, xb.rssi, 0) 
 
     elif xb.address_16 == 1: # tweetawatt sensor 
         tLogApiKey = "9HP6r8st" 
-        PachubeLogKey = "9666" 
+        cosmLogKey = "9666" 
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgwatt = calcwatts(xb) 
         sensorhistory = sensorhistories.find(xb.address_16) 
         addwhistory(sensorhistory, avgwatt) 
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 100, xb.rssi, 0) 
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 100, xb.rssi, 0) 
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 2: # temp sensor
         tLogApiKey = "iaZPQRKw"
-        PachubeLogKey = "9709"
+        cosmLogKey = "9709"
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         thisTemp = calctemp(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
         addunithistory(sensorhistory, thisTemp)
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 120, xb.rssi,0)
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 120, xb.rssi,0)
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 3: # tweetawatt sensor
         tLogApiKey = "vugrnERq"
-        PachubeLogKey = "9668"
+        cosmLogKey = "9668"
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgwatt = calcwatts(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
         addwhistory(sensorhistory, avgwatt)
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 200, xb.rssi,0)
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 200, xb.rssi,0)
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 4: # tweetawatt sensor
         tLogApiKey = "qPCCSIra"
-        PachubeLogKey = "9669"
+        cosmLogKey = "9669"
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgwatt = calcwatts(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
         addunithistory(sensorhistory, avgwatt)
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 500, xb.rssi,0)
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 500, xb.rssi,0)
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 5: # Gas Sensor
         tLogApiKey = "hRpehiQ3"
-        PachubeLogKey = "10267"
+        cosmLogKey = "10267"
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgunit = calcgas(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
         addunithistory(sensorhistory, avgunit)
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 500, xb.rssi,0)
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 500, xb.rssi,0)
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 6: # FSR - Force Sensitive Resister
         tLogApiKey = "odXi4cL7"
-        PachubeLogKey = "10258"
+        cosmLogKey = "10258"
         SenseFeedKey = "0" 
         ThingSpeakKey = ""
         avgunit = calcfsr(xb)
         sensorhistory = sensorhistories.find(xb.address_16)
         addunithistory(sensorhistory, avgunit)
-        fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi,0)
+        fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi,0)
         # twittertimer = twitterwatts(60, twittertimer, xb) 
 
     elif xb.address_16 == 7: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "24660"
+        cosmLogKey = "24660"
         ThingSpeakKey = "604"
 
         adcinputs = [0,1,2,3]
@@ -244,12 +227,12 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
     elif xb.address_16 == 8: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "25131"
+        cosmLogKey = "25131"
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -266,13 +249,13 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
 
     elif xb.address_16 == 9: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "25133"
+        cosmLogKey = "25133"
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -289,12 +272,12 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
     elif xb.address_16 == 10: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "25134"
+        cosmLogKey = "25134"
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -311,12 +294,12 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
     elif xb.address_16 == 11: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "25135"
+        cosmLogKey = "25135"
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -333,7 +316,7 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
 
 
@@ -341,7 +324,7 @@ def mainloop(idleevent):
     elif xb.address_16 == 15: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,0,0,0]
-        PachubeLogKey = "29631"
+        cosmLogKey = "29631"
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -358,13 +341,13 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
 
     elif xb.address_16 == 16: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,3230,3231,0]
-        PachubeLogKey = ""
+        cosmLogKey = ""
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -381,13 +364,13 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
 
     elif xb.address_16 == 17: # Multi-Sensor
         tLogApiKey = ""
         SenseFeedKeys = [0,3232,3233,0]
-        PachubeLogKey = ""
+        cosmLogKey = ""
         ThingSpeakKey = ""
 
         adcinputs = [0,1,2,3]
@@ -404,7 +387,7 @@ def mainloop(idleevent):
             # print "adcSensorNum", adcSensorNum, avgunit
             sensorhistory = sensorhistories.find(adcSensorNum)
             addunithistory(sensorhistory, avgunit)
-            fiveminutelog(sensorhistory, tLogApiKey, PachubeLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
+            fiveminutelog(sensorhistory, tLogApiKey, cosmLogKey, SenseFeedKey, ThingSpeakKey, 1023, xb.rssi, adcinputs[i])
 
 
     else:
@@ -451,7 +434,7 @@ def twitterwatts(lapseMins, twittertimer, loXB):
 
 
 ##############################################################
-def fiveminutelog(loSensorHistory, LogApiKey, PachubeLogKey, SenseLogKey, cThingSpeakKey, lnPachubeMaxVal, xbRssi, adcinput):
+def fiveminutelog(loSensorHistory, LogApiKey, cosmLogKey, SenseLogKey, cThingSpeakKey, lnCosmMaxVal, xbRssi, adcinput):
     # Determine the minute of the hour (ie 6:42 -> '42')
     # currminute = (int(time.time())/60) % 10
     currminute = (int(time.time())/60) % 5
@@ -479,8 +462,8 @@ def fiveminutelog(loSensorHistory, LogApiKey, PachubeLogKey, SenseLogKey, cThing
         print "  #",sensornum,"time to Tinaja DL =", time.time() - lnStartLogging
 
         lnStartLogging = time.time()
-        # send to the pachube data logger
-        logtopachube(sensornum, avgunitsused, PachubeLogKey, lnPachubeMaxVal, xbRssi, adcinput)
+        # send to the cosm data logger
+        logtocosm(sensornum, avgunitsused, cosmLogKey, lnCosmMaxVal, xbRssi, adcinput)
         print "  #",sensornum,"time to Cosm DL =", time.time() - lnStartLogging
 
         # CJ, 03.12.2011, added logtosense() to send feeds to Sen.se
@@ -501,18 +484,18 @@ def fiveminutelog(loSensorHistory, LogApiKey, PachubeLogKey, SenseLogKey, cThing
 
 
 ##############################################################
-# log to Pachube.com
-def logtopachube(lnSensorNum, lnAvgUnits, ApiFeedXML, lnMaxVal, rssi, thisAdc):
+# log to cosm.com
+def logtocosm(lnSensorNum, lnAvgUnits, ApiFeedXML, lnMaxVal, rssi, thisAdc):
 
     if ApiFeedXML == "":
         return
 
-    # Send Data to Pachube
+    # Send Data to cosm
     # feedUrl = "/api/" + ApiFeedXML + ".xml"
     feedUrl = "/v2/feeds/" + ApiFeedXML + ".xml"
     # print "feedUrl: ", feedUrl
 
-    pac = eeml.Pachube(feedUrl, PACHUBE_KEY)
+    pac = eeml.Pachube(feedUrl, COSM_KEY)
     # pac.update(eeml.Data(0, lnAvgUnits, minValue=0, maxValue=None, unit=eeml.Unit(name='watt', type='derivedSI', symbol='W')))
     # pac.update(eeml.Data(0, lnAvgUnits, minValue=0, maxValue=lnMaxVal))
     pac.update(eeml.Data(thisAdc, lnAvgUnits, minValue=0, maxValue=lnMaxVal))
@@ -520,30 +503,30 @@ def logtopachube(lnSensorNum, lnAvgUnits, ApiFeedXML, lnMaxVal, rssi, thisAdc):
     try:
         retVal = pac.put()
         # print "eeml update status: "+str(retVal)
-        # print "Sensor# ", lnSensorNum, "logged ", lnAvgUnits, " to Pachube feed: ", ApiFeedXML
+        # print "Sensor# ", lnSensorNum, "logged ", lnAvgUnits, " to cosm feed: ", ApiFeedXML
     except Exception, e:
-        print "TLSM.logtopachube - eeml exception: "+str(e)
-        syslog.syslog("TLSM.logtopachube exception: eeml: "+str(e))
+        print "TLSM.logtocosm - eeml exception: "+str(e)
+        syslog.syslog("TLSM.logtocosm exception: eeml: "+str(e))
 
 
-    # update pachube with the rssi (signal strength) of the xbee sensor
-    # pac = eeml.Pachube("/api/9982.xml", PACHUBE_KEY)
+    # update cosm with the rssi (signal strength) of the xbee sensor
+    # pac = eeml.Pachube("/api/9982.xml", COSM_KEY)
     lcSensorNum = str(lnSensorNum)
     if len(lcSensorNum)== 1:
         radioNo = lcSensorNum
     else:
         radioNo = lcSensorNum[:-1]
 
-    pac = eeml.Pachube("/v2/feeds/9982.xml", PACHUBE_KEY)
+    pac = eeml.Pachube("/v2/feeds/9982.xml", COSM_KEY)
     pac.update(eeml.Data(radioNo, rssi, minValue=0, maxValue=100))
 
     try:
         retVal = pac.put()
         # print "eeml update status: "+str(retVal)
-        # print "Sensor# ", lnSensorNum, "logged ", rssi, " dB to a Pachube signal strength feed: ", ApiFeedXML
+        # print "Sensor# ", lnSensorNum, "logged ", rssi, " dB to a cosm signal strength feed: ", ApiFeedXML
     except Exception, e:
-        print "TLSM.logtopachube - eeml exception: "+str(e)
-        syslog.syslog("TLSM.logtopachube exception: eeml: "+str(e))
+        print "TLSM.logtocosm - eeml exception: "+str(e)
+        syslog.syslog("TLSM.logtocosm exception: eeml: "+str(e))
 
 
 ##############################################################
@@ -839,6 +822,21 @@ def calcwatts(xb):
 
 
 ##############################################################
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = config.options(section)
+    for option in options:
+        try:
+            dict1[option] = config.get(section, option)
+            if dict1[option] == -1:
+                DebugPrint("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
+
+##############################################################
 def islogcurrent(lofilename):
 
     if lofilename == None:
@@ -875,9 +873,33 @@ def getlogfile():
 
 
 ##############################################################
-# put this at the end
-# the 'main loop' runs once a second or so
+# do some setup here at the end
 
+# set default api keys and urls
+TINAJAAPIKEY = ConfigSectionMap("apikeys")['tinaja_key']
+COSM_KEY = ConfigSectionMap("apikeys")['cosm_key']
+
+# to send feeds to Sen.se
+SENSEURL = ConfigSectionMap("paths")['senselogurl']
+SENSE_KEY = ConfigSectionMap("apikeys")['sense_key']
+
+# for ThingSpeak.com
+THINGSPEAKURL = ConfigSectionMap("paths")['thingspeaklogurl']
+THINGSPEAK_KEY = ConfigSectionMap("apikeys")['thingspeak_key']
+
+# tinaja data logger
+TINAJALOGURL = ConfigSectionMap("paths")['tinajalogurl']
+logwsdl = TINAJALOGURL + "?wsdl"
+client = Client(logwsdl)
+
+# LOCALLOGPATH = "/opt/www/tinajalog"
+LOCALLOGPATH = ConfigSectionMap("paths")['locallogpath']
+
+# Twitter credentials
+twitterusername = ConfigSectionMap("apikeys")['twitterusername']
+twitterpassword = ConfigSectionMap("apikeys")['twitterpassword']
+
+##############################################
 # open our datalogging file
 logfile = getlogfile()
 print "Log file "+logfile.name+" opened..."
@@ -888,8 +910,13 @@ sensorhistories = sensorhistory.SensorHistories(logfile)
 print "Sensor history loaded..."
 
 
+##############################################
 syslog.syslog("<<<  Starting the Tinaja Labs Sensor Manager (TLSM)  >>>")
 print "The main loop is starting..."
+
+
+##############################################
+# the 'main loop' runs once a second or so
 while True:
     mainloop(None)
 
