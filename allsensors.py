@@ -6,7 +6,7 @@ print "Sensor Manager..."
 # print "Tinaja Labs, Winter 2011 - spike fix"
 # print "Tinaja Labs, May 4th, 2011 - Multi-sensor, ThingSpeak"
 # print "Tinaja Labs, June 6th, 2011 - Multi-sensor, ThingSpeak setup"
-print "Tinaja Labs, Sept 4, 2012 - Config file setup"
+print "Tinaja Labs, Sept 4, 2012 - config file setup"
 print "--------------------------------------------"
 
 import serial, time, datetime, sys, random, math
