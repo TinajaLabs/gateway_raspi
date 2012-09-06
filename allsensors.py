@@ -28,6 +28,7 @@ print "imported suds client lib..."
 import eeml
 print "imported eeml lib..."
 
+
 # SERIALPORT = "/dev/tts/0"    # the com/serial port the XBee is connected to
 SERIALPORT = "/dev/ttyAMA0"    # the com/serial port the XBee is connected to
 BAUDRATE = 9600      # the baud rate we talk to the xbee
@@ -57,7 +58,7 @@ CURRENTNORM = 15.5  # conversion to amperes from ADC
 
 # set up the config file parser
 config = ConfigParser.ConfigParser()
-config.read("default.cfg")
+config.read("/home/tinaja/default.cfg")
 
 # open up the serial port to get data transmitted to xbee
 try:
@@ -872,32 +873,43 @@ def getlogfile():
     return lfile
 
 
+
 ##############################################################
 # do some setup here at the end
 
-# set default api keys and urls
-TINAJAAPIKEY = ConfigSectionMap("apikeys")['tinaja_key']
-COSM_KEY = ConfigSectionMap("apikeys")['cosm_key']
+try:
+    # set default api keys and urls
+    TINAJAAPIKEY = ConfigSectionMap("apikeys")['tinaja_key']
+    COSM_KEY = ConfigSectionMap("apikeys")['cosm_key']
 
-# to send feeds to Sen.se
-SENSEURL = ConfigSectionMap("paths")['senselogurl']
-SENSE_KEY = ConfigSectionMap("apikeys")['sense_key']
+    # to send feeds to Sen.se
+    SENSEURL = ConfigSectionMap("paths")['senselogurl']
+    SENSE_KEY = ConfigSectionMap("apikeys")['sense_key']
 
-# for ThingSpeak.com
-THINGSPEAKURL = ConfigSectionMap("paths")['thingspeaklogurl']
-THINGSPEAK_KEY = ConfigSectionMap("apikeys")['thingspeak_key']
+    # for ThingSpeak.com
+    THINGSPEAKURL = ConfigSectionMap("paths")['thingspeaklogurl']
+    THINGSPEAK_KEY = ConfigSectionMap("apikeys")['thingspeak_key']
 
-# tinaja data logger
-TINAJALOGURL = ConfigSectionMap("paths")['tinajalogurl']
-logwsdl = TINAJALOGURL + "?wsdl"
-client = Client(logwsdl)
+    # tinaja data logger
+    TINAJALOGURL = ConfigSectionMap("paths")['tinajalogurl']
+    logwsdl = TINAJALOGURL + "?wsdl"
+    client = Client(logwsdl)
 
-# LOCALLOGPATH = "/opt/www/tinajalog"
-LOCALLOGPATH = ConfigSectionMap("paths")['locallogpath']
+    # LOCALLOGPATH = "/opt/www/tinajalog"
+    LOCALLOGPATH = ConfigSectionMap("paths")['locallogpath']
 
-# Twitter credentials
-twitterusername = ConfigSectionMap("apikeys")['twitterusername']
-twitterpassword = ConfigSectionMap("apikeys")['twitterpassword']
+    # Twitter credentials
+    twitterusername = ConfigSectionMap("apikeys")['twitterusername']
+    twitterpassword = ConfigSectionMap("apikeys")['twitterpassword']
+
+    print "Successfully configured..."
+    syslog.syslog("TLSM.config: Successfully configured...")
+
+except Exception, e:
+    print "There was a problem with the configuration: "+str(e)
+    syslog.syslog("TLSM.config exception: "+str(e))
+    exit
+
 
 ##############################################
 # open our datalogging file
