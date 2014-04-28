@@ -8,7 +8,7 @@ print "Sensor Manager..."
 # print "Tinaja Labs, June 6th, 2011 - Multi-sensor, ThingSpeak setup"
 print "Tinaja Labs, Sept 4, 2012 - config file setup"
 print "--------------------------------------------"
-
+  
 import serial, time, datetime, sys, random, math
 import syslog
 from xbee import xbee
